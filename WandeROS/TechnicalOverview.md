@@ -120,5 +120,5 @@ roslaunch turtlebot_teleop keyboard_teleop.launch
 
 writing code for a turtlebot running around in a gazebo simulator is pretty easy if you choose to use python, just call your python file like you call any other:  
 ```bash
-python gazebocodefile.py  
+python rosCuriosity.py  
 ```
