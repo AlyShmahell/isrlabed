@@ -22,7 +22,7 @@ class rosCuriosity():
 		rospy.init_node('rosCuriosity', anonymous=True)   
 		rospy.on_shutdown(self.__shutdown__)
 		###
-		self.bumperResponse = [90,180,-90]
+		self.bumperResponse = [pi/2,pi,-pi/2]
 		self.landmarks=[[1.44,-0.98,"cube"],[0.99,-3.44,"dumpster"],[-2.00,-3.48,"cylinder"],
 				[-4.00,-1.00,"barrier"],[0.00,-1.53,"bookshelf"]]
 		self.vacinity = [-1,"Undefined"]
@@ -52,6 +52,8 @@ class rosCuriosity():
 	########
 	def poseCallback(self,odometry):
 		self.odometry = odometry
+		self.odometry.pose.pose.position.x = round(self.odometry.pose.pose.position.x,4)
+		self.odometry.pose.pose.position.y = round(self.odometry.pose.pose.position.y,4)
 		self.vacinity[0]=-1
 		for i in range(len(self.landmarks)):
 			distance = sqrt(pow((self.landmarks[i][0]-odometry.pose.pose.position.x),2)+
@@ -59,34 +61,28 @@ class rosCuriosity():
 			if (self.vacinity[0]==-1 or distance<self.vacinity[0]):
 				self.vacinity[0] = distance
 				self.vacinity[1] = self.landmarks[i][2]
+		rospy.loginfo("current position data, X: %f, Y:%f. closest to: %s at %f" 
+				%(self.odometry.pose.pose.position.x,self.odometry.pose.pose.position.y,self.vacinity[1],self.vacinity[0]))
 	########	
 	########
 	def think(self):
-		thinkRate = rospy.Rate(20)
 		if(sqrt(self.odometry.pose.pose.position.x ** 2 + self.odometry.pose.pose.position.y ** 2)>10.0):
-			deltaY = abs(self.odometry.pose.pose.position.y)
-			deltaX = abs(self.odometry.pose.pose.position.x)
-			bearing = 0.0
-			
-			if self.odometry.pose.pose.position.y > 0 and self.odometry.pose.pose.position.x > 0:
-				bearing = -180 + atan2(deltaY, deltaX)*180/pi
-			if self.odometry.pose.pose.position.y > 0 and self.odometry.pose.pose.position.x < 0:
-				bearing = -1 * atan2(deltaY, deltaX)*180/pi
-			if self.odometry.pose.pose.position.y < 0 and self.odometry.pose.pose.position.x < 0:
-				bearing = atan2(deltaY, deltaX)*180/pi
-			if self.odometry.pose.pose.position.y < 0 and self.odometry.pose.pose.position.x > 0:
-				bearing = 180 - atan2(deltaY, deltaX)*180/pi
-			rospy.loginfo("before rotate by, Y: %f, X: %f, Bearing: %f" %(self.odometry.pose.pose.position.y,
-									self.odometry.pose.pose.position.x, bearing))
-			self.rotateTo(bearing)
-			self.move(sqrt(deltaX ** 2 + deltaY ** 2))
-			thinkRate.sleep()
+			self.home(0,0)
 		else:
 			self.move(1.0)
+	########
+	########
+	def home(self, goalX, goalY):
+		self.rotateBy(atan2(goalY - self.odometry.pose.pose.position.y, goalX - self.odometry.pose.pose.position.x) - 
+				tf.transformations.euler_from_quaternion([self.odometry.pose.pose.orientation.x,
+									self.odometry.pose.pose.orientation.y,
+									self.odometry.pose.pose.orientation.z,
+									self.odometry.pose.pose.orientation.w])[2])
+		self.move(sqrt(pow(goalX - self.odometry.pose.pose.position.x, 2) + pow(goalY - self.odometry.pose.pose.position.y, 2)))
 	########	
 	########
 	def move(self, distance):
-		rospy.loginfo("move function called, moving by: %f" %distance)
+		rospy.loginfo("move function called, moving for: %f meters" %distance)
 		moveRate = rospy.Rate(20)
 		start = sqrt(self.odometry.pose.pose.position.x ** 2 + self.odometry.pose.pose.position.y ** 2)
 		distanceMoved = 0.0
@@ -96,57 +92,63 @@ class rosCuriosity():
 				moveRate.sleep()
 				self.rotateBy(self.bumperResponse[self.bumperEvent.bumper])
 				moveRate.sleep()
+				break
 			self.velocityPublisher.publish(Vector3(0.4,0,0),Vector3(0,0,0))
 			moveRate.sleep()
 			end = sqrt(self.odometry.pose.pose.position.x ** 2 + self.odometry.pose.pose.position.y ** 2)
 			distanceMoved = distanceMoved+abs(abs(float(end)) - abs(float(start)))
 			start = end
-			rospy.loginfo("inside move function loop, moved by: %f" %distanceMoved)
 			if not (distanceMoved<distance):
 				break
 		self.velocityPublisher.publish(Twist())
 		moveRate.sleep()
 	########	
 	########
-	def rotateBy(self, degrees):
-		rospy.loginfo("rotate by function called")
+	def rotateBy(self, radians):
+		###
+		if (radians>0):
+			angularVelocityZ = -0.3
+		else:
+			angularVelocityZ = 0.3
+		###
+		while radians > 2*pi :
+			radians-=2*pi
+		while radians < 0:
+			radians+=2*pi
+		###
+		rospy.loginfo("rotateby function called, rotating by: %f" %radians )
 		rotatRate = rospy.Rate(20)
-		radians = degrees/57.2957795
-		euler = tf.transformations.euler_from_quaternion([self.odometry.pose.pose.orientation.x,
+		previousYaw = tf.transformations.euler_from_quaternion([self.odometry.pose.pose.orientation.x,
 								self.odometry.pose.pose.orientation.y,
 								self.odometry.pose.pose.orientation.z,
-								self.odometry.pose.pose.orientation.w])
-		previousYaw = euler[2]
+								self.odometry.pose.pose.orientation.w])[2]
 		rotatRate.sleep()
 		angleTurned = 0.0
 		while True:
-			if (radians>0):
-				self.velocityPublisher.publish(Vector3(0,0,0),Vector3(0,0,-0.3))
-			else:
-				self.velocityPublisher.publish(Vector3(0,0,0),Vector3(0,0,0.3))
+			self.velocityPublisher.publish(Vector3(0,0,0),Vector3(0,0,angularVelocityZ))
 			rotatRate.sleep()
-			euler = tf.transformations.euler_from_quaternion([self.odometry.pose.pose.orientation.x,
+			currentYaw = tf.transformations.euler_from_quaternion([self.odometry.pose.pose.orientation.x,
 									self.odometry.pose.pose.orientation.y,
 									self.odometry.pose.pose.orientation.z,
-									self.odometry.pose.pose.orientation.w])
-			currentYaw = euler[2]
+									self.odometry.pose.pose.orientation.w])[2]
+			rotatRate.sleep()
 			angleTurned = angleTurned + abs(abs(currentYaw) - abs(previousYaw))
 			previousYaw = currentYaw
-			rotatRate.sleep()
 			if (angleTurned > abs(radians)):
+				rospy.loginfo("final bearing is: %f" %currentYaw)
 				break
 		self.velocityPublisher.publish(Twist())
 		rotatRate.sleep()
 	########	
 	########
 	def rotateTo(self, bearing):
-		rospy.loginfo("rotate to function called, bearing is: %f" %float(bearing/57.2957795))
+		rospy.loginfo("rotate to function called, bearing is: %f" %float(bearing))
 		rotateRate = rospy.Rate(20)
-		bearing = float(bearing/57.2957795)
 		roll, pitch, yaw = tf.transformations.euler_from_quaternion([self.odometry.pose.pose.orientation.x,
 										self.odometry.pose.pose.orientation.y,
 										self.odometry.pose.pose.orientation.z,
 										self.odometry.pose.pose.orientation.w])
+		rotateRate.sleep()
 		while abs(yaw-bearing)>0.1:
 			self.velocityPublisher.publish(Vector3(0,0,0),Vector3(0,0,0.3))
 			rotateRate.sleep()
@@ -154,8 +156,9 @@ class rosCuriosity():
 											self.odometry.pose.pose.orientation.y,
 											self.odometry.pose.pose.orientation.z,
 											self.odometry.pose.pose.orientation.w])
+			rotateRate.sleep()
 
-		rospy.loginfo("final bearing: %f" %yaw)
+		rospy.loginfo("final bearing is: %f" %yaw)
 		self.velocityPublisher.publish(Twist())
 		rotateRate.sleep()
 ################

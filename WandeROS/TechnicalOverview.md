@@ -1,8 +1,8 @@
-## Hacking the Deep Learning Robot (to work)
+# Hacking the Deep Learning Robot (to work)
 
-### Technical Overview
+## Technical Overview
 
-#### Minimal Kokubi Installation
+### Minimal Kokubi Installation
 In order to control the kokubi base from within the laptop, one only needs the minimal kokubi installation, as portrayed and explained on this page:  
 http://yujinrobot.github.io/kobuki/doxygen/enInstallationLinuxGuide.html    
 
@@ -10,7 +10,7 @@ However, if you're on Ubuntu 14.04, you might find it a bit tedious, since there
 
 Now I have updated the official tutorial to work with Ubuntu 14.04 as following:  
 
-1) install the required libraries:  
+1) install the required libraries/dependencies:  
 ```bash
 sudo apt-get install python-pip libftdi-dev cmake python-empy python-nose python-setuptools build-essential  
 sudo pip install wstool catkin-pkg
@@ -36,10 +36,9 @@ this has worked for me, however, when I try to run the simple loop test, the rob
 ```bash
 /opt/kobuki_core/install/lib/kobuki_driver/demo_kobuki_simple_loop  
 ```
-#### ROS Indigo on Ubuntu 14.04
-Now, my second try was installing ROS indigo, which also had some hoops which i had to overcome:  
-first of all, the "ros-indigo-desktop-full" did not install at all, too many dependency conflicts as of December 2016.  
-Instead, I went on installing it piece by piece:  
+### ROS Indigo on Ubuntu 14.04
+Now, my second try was installing ROS indigo, which also had some hoops which I had to overcome:  
+at first the "ros-indigo-desktop-full" did not install at all, there were too many dependency conflicts, after a long effort it worked and here is how:  
 1) add the package source list:  
 ```bash
 sudo sh -c '. /etc/lsb-release && echo "deb http://packages.ros.org.ros.informatik.uni-freiburg.de/ros/ubuntu $DISTRIB_CODENAME main" > /etc/apt/sources.list.d/ros-latest.list'  
@@ -79,10 +78,10 @@ sudo apt-get install ros-indigo-gazebo-ros-pkgs ros-indigo-gazebo-ros-control
 echo "source /opt/ros/indigo/setup.bash" >> ~/.bashrc  
 source ~/.bashrc  
 ```
-10) setup rosinstall:  
+10) setup rosinstall to install ros sources in the future:  
 sudo apt-get install python-rosinstall  
 
-11) Set udev Rule:  
+11) Set udev rule to be able to connect to the kobuki base via usb:  
 ```bash
 rosrun kobuki_ftdi create_udev_rules  
 ```
@@ -102,7 +101,7 @@ in yet another new terminal as well, launch the keyboard operation module:
 ```bash
 roslaunch kobuki_keyop keyop.launch  
 ```
-###### Warning: a small press can make the kobuki base gain a relatively insane speed
+###### Warning: a small press can make the kobuki base gain a relatively insane velocity
 
 ---
 
@@ -111,14 +110,13 @@ open a terminal and launch the simulator:
 ```bash
 roslaunch turtlebot_gazebo turtlebot_world.launch  
 ```
-if you want to test keyboard teleoperation launch the teleop simulator:  
+if you want to test keyboard teleoperation launch the teleop tool:  
 ```bash
 roslaunch turtlebot_teleop keyboard_teleop.launch  
 ```
 
 ### Finally: the CODE
-
 writing code for a turtlebot running around in a gazebo simulator is pretty easy if you choose to use python, just call your python file like you call any other:  
 ```bash
-python rosCuriosity.py  
+python turtlebotCuriosity.py  
 ```
