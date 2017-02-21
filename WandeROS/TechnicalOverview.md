@@ -120,3 +120,11 @@ writing code for a turtlebot running around in a gazebo simulator is pretty easy
 ```bash
 python turtlebotCuriosity.py  
 ```
+here you can find a youtube video of the simulation:  
+[https://www.youtube.com/watch?v=eyGiEAGWcy8](https://www.youtube.com/watch?v=eyGiEAGWcy8)    
+
+###### However
+if you want to test the code on a real kobuki base, you need to use a catkin workplace with some minor modifications to the code. There is a catkin_ws folder included, feel free to dissect it and see how it works, and in order to start the python script, I included a launch script which you can call like this:  
+```bash
+./launch.sh
+```
