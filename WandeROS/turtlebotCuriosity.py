@@ -8,7 +8,7 @@ import tf
 import tf2_ros
 import rospy
 from nav_msgs.msg import Odometry
-from kobuki_msgs.msg import bumper_event
+from kobuki_msgs.msg import BumperEvent
 from geometry_msgs.msg import Twist
 from geometry_msgs.msg import Vector3
 ################
@@ -33,7 +33,7 @@ class WandeROS():
 		self.vicinity 	 	= [-1, "Undefined"]
 		###
 		self.odometry 	 	= Odometry()
-		self.bumper_event 	= bumper_event()
+		self.bumper_event 	= BumperEvent()
 		###
 		self.velocity_publisher = rospy.Publisher(
 													"/cmd_vel_mux/input/teleop", 
@@ -47,7 +47,7 @@ class WandeROS():
 											    )
 		self.bumper_subscriber  = rospy.Subscriber(
 													"/mobile_base/events/bumper",
-												 	bumper_event, 
+												 	BumperEvent, 
 												 	self.__bumper_callback
 												)
 		###
@@ -63,8 +63,8 @@ class WandeROS():
 		rospy.sleep(1)
 	########	
 	########
-	def __bumper_callback(self,bumper_event):
-		self.bumper_event = bumper_event
+	def __bumper_callback(self, bumper_event):
+		self.bumper_event = BumperEvent
 	########	
 	########
 	def __pose_callback(self, odometry):
@@ -124,7 +124,7 @@ class WandeROS():
 		start     = sqrt(self.odometry.pose.pose.position.x ** 2 + self.odometry.pose.pose.position.y ** 2)
 		distance_moved = 0.0
 		while True :
-			if(self.bumper_event.state == bumper_event.PRESSED):
+			if(self.bumper_event.state == BumperEvent.PRESSED):
 				self.velocity_publisher.publish(
 													Vector3(-0.4, 0, 0),
 													Vector3(0, 0, 0)
