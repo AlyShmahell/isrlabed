@@ -3,7 +3,7 @@ FROM ubuntu:18.04
 
 LABEL author="Aly Shmahell"
 LABEL email="aly.shmahell@student.univaq.it"
-
+RUN apt update
 RUN apt install curl
 RUN curl -sL https://deb.nodesource.com/setup_13.x | -E bash -
 RUN apt update
