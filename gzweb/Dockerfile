@@ -1,7 +1,6 @@
 # Stage 1
 FROM ubuntu:18.04
 # Pre-Requirements
-RUN apt remove nodejs npm
 RUN apt update
 RUN apt install -q -y curl apt-utils
 # General Requirements
