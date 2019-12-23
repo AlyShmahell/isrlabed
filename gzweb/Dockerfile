@@ -4,8 +4,8 @@ FROM ubuntu:18.04
 LABEL author="Aly Shmahell"
 LABEL email="aly.shmahell@student.univaq.it"
 RUN apt update
-RUN apt install -q -y curl
-RUN curl -sL https://deb.nodesource.com/setup_13.x | -E bash -
+RUN apt install -q -y curl apt-utils
+RUN curl -sL https://deb.nodesource.com/setup_13.x | bash -
 RUN apt update
 RUN apt install -q -y libjansson-dev nodejs npm nodejs-legacy libboost-dev imagemagick libtinyxml-dev mercurial cmake build-essential
 
