@@ -1,7 +1,3 @@
-
-# Info
-LABEL author="Aly Shmahell"
-LABEL email="aly.shmahell@student.univaq.it"
 # Stage 1
 FROM ubuntu:18.04
 # Pre-Requirements
@@ -28,3 +24,6 @@ RUN mkdir /root/gzweb/http/client/assets
 RUN cd /root/gzweb && ./deploy.sh -m -t
 CMD ["gzserver"]
 CMD ["npm" "start"]
+# Info
+LABEL author="Aly Shmahell"
+LABEL email="aly.shmahell@student.univaq.it"
