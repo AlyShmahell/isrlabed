@@ -14,7 +14,7 @@ RUN apt install -q -y \
 # Gazebo Requirements
 RUN apt install -q -y gazebo7 libgazebo7-dev
 # Gzweb clone
-RUN RUN hg clone https://bitbucket.org/osrf/gzweb ~/gzweb
+RUN hg clone https://bitbucket.org/osrf/gzweb ~/gzweb
 # Gzweb deployment
 RUN cd ~/gzweb \
     && hg up default \
