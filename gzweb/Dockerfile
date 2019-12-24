@@ -1,16 +1,19 @@
 FROM gazebo:libgazebo7
 # General Requirements
-RUN apt update
-RUN apt install -q -y \ 
+RUN apt-get update && apt-get upgrade -q -y && apt install -q -y \ 
         libjansson-dev \
         nodejs \
         npm \
-        libboost-dev \
+        nodejs-legacy \
+        libboost-all-dev \
+        libgts-dev \
         imagemagick \
         libtinyxml-dev \
         mercurial \
         cmake \
-        build-essential
+        pkg-config \
+        psmisc \
+        build-essential && rm -rf /var/lib/apt/lists/*
 # Gazebo Requirements
 RUN apt install -q -y gazebo7 libgazebo7-dev
 # Gzweb clone
