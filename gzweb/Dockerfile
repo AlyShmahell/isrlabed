@@ -15,7 +15,7 @@ RUN apt-get update && apt-get upgrade -q -y && apt install -q -y \
         psmisc \
         build-essential && rm -rf /var/lib/apt/lists/*
 # Gazebo Requirements
-RUN apt install -q -y gazebo7 libgazebo7-dev
+RUN apt install -q -y gazebo7 libgazebo7-dev && rm -rf /var/lib/apt/lists/*
 # Gzweb clone
 RUN hg clone https://bitbucket.org/osrf/gzweb ~/gzweb
 # Gzweb deployment
@@ -25,7 +25,7 @@ RUN cd ~/gzweb \
 EXPOSE 8080
 EXPOSE 7681
 RUN mkdir /root/gzweb/http/client/assets
-RUN cd /root/gzweb && ./deploy.sh -m -t
+CMD cd /root/gzweb && ./deploy.sh -m -t
 CMD ["gzserver"]
 CMD ["npm" "start"]
 # Info
