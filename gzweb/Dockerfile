@@ -1,10 +1,11 @@
+FROM node:13
+RUN apt-get update && apt-get upgrade -q -y && apt install -q -y \ 
+        nodejs-legacy \
+		nodejs \
+        npm && rm -rf /var/lib/apt/lists/*
 FROM gazebo:libgazebo7
-# General Requirements
 RUN apt-get update && apt-get upgrade -q -y && apt install -q -y \ 
         libjansson-dev \
-        nodejs \
-        npm \
-        nodejs-legacy \
         libboost-all-dev \
         libgts-dev \
         imagemagick \
@@ -14,8 +15,7 @@ RUN apt-get update && apt-get upgrade -q -y && apt install -q -y \
         pkg-config \
         psmisc \
         build-essential && rm -rf /var/lib/apt/lists/*
-# Gazebo Requirements
-RUN apt install -q -y gazebo7 libgazebo7-dev && rm -rf /var/lib/apt/lists/*
+RUN apt install -q -y libgazebo7-dev && rm -rf /var/lib/apt/lists/*
 # Gzweb clone
 RUN hg clone https://bitbucket.org/osrf/gzweb ~/gzweb
 # Gzweb deployment
