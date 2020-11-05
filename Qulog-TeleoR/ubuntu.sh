@@ -51,14 +51,14 @@ ln -s /opt/qp/bin/qc /usr/local/bin/qc
 ln -s /opt/qulog/bin/qulog  /usr/local/bin/qulog
 ln -s /opt/qulog/bin/teleor /usr/local/bin/teleor
 
-apt remove  -y --purge wget\
-                       texinfo\
-                       make\
-                       automake\
-                       autoconf\
-                       gcc\
-                       libc-dev\
-                       pkg-config\
-                       m4\
-                       perl
-apt clean   -y
+apt autoremove -y --purge wget\
+                           texinfo\
+                           make\
+                           automake\
+                           autoconf\
+                           gcc\
+                           libc-dev\
+                           pkg-config\
+                           m4\
+                           perl
+apt clean -y

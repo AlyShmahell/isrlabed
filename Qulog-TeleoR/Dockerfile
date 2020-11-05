@@ -2,10 +2,8 @@
 
 FROM ubuntu:18.04
 
-WORKDIR /opt
-
-COPY ./install.sh /opt/install.sh
-RUN   /opt/install.sh
+COPY ./ubuntu.sh /opt/ubuntu.sh
+RUN   /opt/ubuntu.sh
 
 WORKDIR /root
 

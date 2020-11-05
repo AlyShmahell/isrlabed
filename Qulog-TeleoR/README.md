@@ -10,20 +10,24 @@ The authors of Qulog & its Teleor extension are:
 
 for more information on  Qulog & its Teleor extension, please visit: [http://staff.itee.uq.edu.au/pjr/HomePages/QulogHome.html](http://staff.itee.uq.edu.au/pjr/HomePages/QulogHome.html)
 
-# Docker Installation & Usage:
+# Package Installation & Usage:
 - pull the docker image:
   ```sh
-  docker pull docker.pkg.github.com/alyshmahell/qulog-teleor/qulog-teleor:latest
+  docker pull docker.pkg.github.com/alyshmahell/qulog-teleor/qulog-teleor:0.7
   ```
 - retag it for easier access:
   ```sh
-  docker tag docker.pkg.github.com/alyshmahell/qulog-teleor/qulog-teleor qulog-teleor
+  docker tag docker.pkg.github.com/alyshmahell/qulog-teleor/qulog-teleor:0.7 qulog-teleor:0.7
   ```
 - run the image:
   ```sh
-  docker run -i -t qulog-teleor
+  docker run -i -t qulog-teleor:0.7
   ````
 - running qulog:
   ```sh
   qulog
   ```
+
+# Package Information:
+- This package has Ubuntu 18.04 as a base
+- Qulog/Teleor 0.7 is installed within it.
