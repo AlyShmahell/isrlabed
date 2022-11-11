@@ -1,32 +1,51 @@
-from bottle import Bottle, run, template, static_file
+from bottle import Bottle, run, template, static_file, response, request
+
+def enable_cors(fn):
+    def _enable_cors(*args, **kwargs):
+        response.headers['Access-Control-Allow-Origin'] = '*'
+        response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, OPTIONS'
+        response.headers['Access-Control-Allow-Headers'] = 'Origin, Accept, Content-Type, X-Requested-With, X-CSRF-Token'
+        if request.method != 'OPTIONS':
+            # actual request; reply with the actual response
+            return fn(*args, **kwargs)
+    return _enable_cors
 
 app = Bottle()
 
-@app.get('/')
+@app.route('/', method='GET')
+@enable_cors
 def index():
     return template('app/index.html')
 
-@app.get('/webpyux/core/<filename:path>')
+@app.route('/webpyux/core/<filename:path>', method='GET')
+@enable_cors
 def get_static(filename):
     return static_file(filename, root='webpyux/core')
 
-@app.get('/webpyux/assets/<filename:path>')
+@app.route('/webpyux/assets/<filename:path>', method='GET')
+@enable_cors
 def get_static(filename):
     return static_file(filename, root='webpyux/assets')
 
-@app.get('/app/<filename:path>')
+@app.route('/app/<filename:path>', method='GET')
+@enable_cors
 def get_static(filename):
     return static_file(filename, root='app')
 
-@app.post('/session/token')
+# simple token as per https://github.com/agile4you/bottle-jwt
+@app.route('/session/token', method='POST')
+@enable_cors
 def hello():
-    return "token"
+    return {"token": "secret"}
 
-@app.post('/rest/auth')
+# simple token as per https://github.com/agile4you/bottle-jwt
+@app.route('/rest/auth', method=['GET', 'POST'])
+@enable_cors
 def hello():
-    return "auth"
+    return {"token": "secret"}
 
-@app.post('/rest/login')
+@app.route('/rest/login', method='POST')
+@enable_cors
 def hello():
     return {"status": 200, "user_data": ""}
 
