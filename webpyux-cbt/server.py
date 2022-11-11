@@ -36,17 +36,44 @@ def get_app(filename):
 @app.route('/session/token', method='POST')
 @enable_cors
 def post_token():
-    return {"token": "secret"}
+    return {
+        "status": 200, 
+        "user_data": {
+            "first_name": "a",
+            "last_name": "b",
+            "picture": "",
+            "access_token": "secret",
+            "email": "a@b.com",
+        }
+    }
 
 # simple token as per https://github.com/agile4you/bottle-jwt
 @app.route('/rest/auth', method=['GET', 'POST'])
 @enable_cors
 def get_auth():
-    return {"token": "secret"}
+    return {
+        "status": 200, 
+        "user_data": {
+            "first_name": "a",
+            "last_name": "b",
+            "picture": "",
+            "access_token": "secret",
+            "email": "a@b.com",
+        }
+    }
 
-@app.route('/rest/login', method='POST')
+@app.route('/rest/login', method=['POST', 'GET'])
 @enable_cors
 def post_login():
-    return {"status": 200, "user_data": ""}
+    return {
+        "status": 200, 
+        "user_data": {
+            "first_name": "a",
+            "last_name": "b",
+            "picture": "",
+            "access_token": "secret",
+            "email": "a@b.com",
+        }
+    }
 
 run(app, host='localhost', port=8000, reloader=True)
