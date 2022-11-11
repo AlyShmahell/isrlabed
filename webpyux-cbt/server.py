@@ -19,34 +19,34 @@ def index():
 
 @app.route('/webpyux/core/<filename:path>', method='GET')
 @enable_cors
-def get_static(filename):
+def get_core(filename):
     return static_file(filename, root='webpyux/core')
 
 @app.route('/webpyux/assets/<filename:path>', method='GET')
 @enable_cors
-def get_static(filename):
+def get_assets(filename):
     return static_file(filename, root='webpyux/assets')
 
 @app.route('/app/<filename:path>', method='GET')
 @enable_cors
-def get_static(filename):
+def get_app(filename):
     return static_file(filename, root='app')
 
 # simple token as per https://github.com/agile4you/bottle-jwt
 @app.route('/session/token', method='POST')
 @enable_cors
-def hello():
+def post_token():
     return {"token": "secret"}
 
 # simple token as per https://github.com/agile4you/bottle-jwt
 @app.route('/rest/auth', method=['GET', 'POST'])
 @enable_cors
-def hello():
+def get_auth():
     return {"token": "secret"}
 
 @app.route('/rest/login', method='POST')
 @enable_cors
-def hello():
+def post_login():
     return {"status": 200, "user_data": ""}
 
 run(app, host='localhost', port=8000, reloader=True)
