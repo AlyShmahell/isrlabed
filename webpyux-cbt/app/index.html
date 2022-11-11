@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
+    <meta name="description" content="WepPyUX"/>
+    <meta name="author" content="Spianopolese"/>
+    <title>WepPyUX</title>
+    <link rel="icon" type="image/x-icon" href="/webpyux/assets/favicon.ico"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,300;1,400;1,500;1,600;1,700;1,800"
+          rel="stylesheet">
+    <link rel="stylesheet" href="/webpyux/core/style/style.css"/>
+    <script defer src="https://pyscript.net/latest/pyscript.js"></script>
+    <script src="/webpyux/core/vendor/chartjs/dist/chart.js"></script>
+    <script src="/webpyux/core/lib/widgets/Chart/js/chart.js"></script>
+    <script src="/webpyux/core/lib/utils/js/clock.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mqtt/4.3.7/mqtt.min.js"
+            integrity="sha512-tc5xpAPaQDl/Uxd7ZVbV66v94Lys0IefMJSdlABPuzyCv0IXmr9TkqEQvZiWKRoXMSlP5YPRwpq2a+v5q2uzMg=="
+            crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="/webpyux/core/lib/widgets/Websocket/js/websocketConnector.js"></script>
+</head>
+
+<body>
+<py-config type="toml">
+    packages = ["asyncio"]
+    paths = [
+    "/webpyux/core/lib/Result.py",
+    "/webpyux/core/lib/ListView.py",
+    "/webpyux/core/lib/AppInfo.py",
+    "/webpyux/core/lib/StatusBar.py",
+    "/webpyux/core/lib/interface/MediatorInterface.py",
+    "/webpyux/core/lib/interface/ElementInterface.py",
+    "/webpyux/core/lib/interface/RenderElementInterface.py",
+    "/webpyux/core/lib/Mediator.py",
+    "/webpyux/core/lib/Menu.py",
+    "/webpyux/core/lib/modules/User.py",
+    "/webpyux/core/lib/utils/Connector.py",
+    "/webpyux/core/lib/widgets/Text/text.py",
+    "/webpyux/core/lib/widgets/Chart/chart.py",
+    "/webpyux/core/lib/widgets/Websocket/websocket.py",
+    "/app/config.ini"
+    ]
+</py-config>
+<py-script src="/webpyux/core/app.py"></py-script>
+<header>
+    <div id="menu">
+        <ul>
+            <li><a href="#"><i class="fa-solid fa-gear"></i><span>Widgets</span></a>
+                <ul id="widgets"></ul>
+            </li>
+            <li><a href="#" aria-disabled="true" class="disabled"><i class="fa-solid fa-plus"></i><span>New</span></a></li>
+            <li><a href="#" aria-disabled="true"  class="disabled"><i class="fa-solid fa-info"></i><span>About</span></a></li>
+        </ul>
+    </div>
+</header>
+<div class="main">
+    <ul id="list-view"></ul>
+    <div id="app-info">
+        <ul>
+            <li>
+                <h3>Current dataset:</h3>
+                <span id="current-dataset"></span>
+            </li>
+            <li>
+                <h3>Data transferred:</h3>
+                <span id="data-size"></span>
+            </li>
+            <li>
+                <h3>Session uptime:</h3>
+                <span id="timer"></span>
+            </li>
+        </ul>
+    </div>
+    <div id="result"></div>
+</div>
+<footer>
+    <div id="status-bar">
+        <div id="user">
+            <div id="logout"><i class="fa-solid fa-right-from-bracket"></i>Logout</div>
+        </div>
+        <div class="wrapper">
+            <div class="logo">WebPy<sup>UX</sup></div>
+            <div class="clock"><i class="fa-regular fa-clock"></i>
+                <time id="time"></time>
+            </div>
+        </div>
+    </div>
+</footer>
+</body>
+</html>
+
