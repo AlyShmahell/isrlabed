@@ -44,6 +44,7 @@ def post_token():
             "picture": "",
             "access_token": "secret",
             "email": "a@b.com",
+            "password": "hashed"
         }
     }
 
@@ -59,6 +60,7 @@ def get_auth():
             "picture": "",
             "access_token": "secret",
             "email": "a@b.com",
+            "password": "hashed"
         }
     }
 
@@ -73,6 +75,7 @@ def post_login():
             "picture": "",
             "access_token": "secret",
             "email": "a@b.com",
+            "password": "hashed"
         }
     }
 
