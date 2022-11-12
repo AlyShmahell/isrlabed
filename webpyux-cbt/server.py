@@ -81,6 +81,11 @@ def test():
                   "label":"Widget 2",
                   "class":"test",
                   "url":"/rest/menu/test/widget/2"
+               },
+               {
+                  "label":"Chart Widget",
+                  "class":"chart",
+                  "url":"/rest/menu/test/widget/chart"
                }
             ]
          }
@@ -127,6 +132,40 @@ def widget3():
         "class": "simple_test",
         "test_custom_label_data" : "Test test test test",
         "size": 2522
+    }
+
+@app.route('/rest/menu/test/widget/chart', method=['get'])
+@enable_cors
+def widget4():
+    return {
+        "label" : "DATA" ,
+            "list_view_dataset" : "DATA" ,
+            "list_view_label" : "doughnut" ,
+            "class" : "chart" ,
+            "data" : {
+                "labels" : [
+                "Red" ,
+                "Blue" ,
+                "Yellow"
+                ],
+            "datasets" : [
+                {
+                    "label" : "chart" ,
+                    "data" : [
+                        300,
+                        50,
+                        100
+                    ] ,
+                    "backgroundColor" : [
+                    "rgb(255, 0, 0)" ,
+                    "rgb(0, 255, 0)" ,
+                    "rgb(0, 0, 255)"
+                    ] ,
+                    "hoverOffset" : 4
+                }
+            ]
+            } ,
+            "size" : 485
     }
 
 
