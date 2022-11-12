@@ -55,16 +55,16 @@ def post_login():
         "user_data": {
             "first_name": "a",
             "last_name": "b",
-            "picture": "https://source.unsplash.com/user/c_v_r/50x50",
+            "picture": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAyCAQAAAC0NkA6AAAAL0lEQVR42u3NIQEAAAgDMG7oXxdHBgRuK7D01LtIJBKJRCKRSCQSiUQikUgkkpsF1bQyAU6FgDwAAAAASUVORK5CYII=",
             "access_token": "secret",
-            "email": "a@b.com",
+            "email": "a@b.c",
             "password": "hashed"
         }
     }
 
 @app.route('/rest/menu/test', method=['get'])
 @enable_cors
-def post_login():
+def test():
     return {
    "test":{
       "label":"Test Widget",
@@ -95,7 +95,7 @@ def post_login():
 
 @app.route('/rest/menu/test/widget/1', method=['get'])
 @enable_cors
-def post_login():
+def widget1():
     return {
         "label": "First widget with dataset",
         "list_view_dataset": "Dataset Test 1",
@@ -107,7 +107,7 @@ def post_login():
 
 @app.route('/rest/menu/test/widget/2', method=['get'])
 @enable_cors
-def post_login():
+def widget2():
     return {
         "label": "First widget with dataset",
         "list_view_dataset": "Dataset Test 1",
@@ -119,7 +119,7 @@ def post_login():
 
 @app.route('/rest/menu/test/widget/3', method=['get'])
 @enable_cors
-def post_login():
+def widget3():
     return {
         "label": "First widget with dataset",
         "list_view_dataset": "Test No dataset",
