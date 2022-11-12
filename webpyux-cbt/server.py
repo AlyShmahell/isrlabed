@@ -36,35 +36,18 @@ def get_app(filename):
 @app.route('/session/token', method='POST')
 @enable_cors
 def post_token():
-    return {
-        "status": 200, 
-        "user_data": {
-            "first_name": "a",
-            "last_name": "b",
-            "picture": "",
-            "access_token": "secret",
-            "email": "a@b.com",
-            "password": "hashed"
-        }
-    }
+    return "session_token"
 
 # simple token as per https://github.com/agile4you/bottle-jwt
-@app.route('/rest/auth', method=['GET', 'POST'])
+@app.route('/rest/auth', method=['GET'])
 @enable_cors
 def get_auth():
     return {
         "status": 200, 
-        "user_data": {
-            "first_name": "a",
-            "last_name": "b",
-            "picture": "",
-            "access_token": "secret",
-            "email": "a@b.com",
-            "password": "hashed"
-        }
+        "message": "user authorized"
     }
 
-@app.route('/rest/login', method=['POST', 'GET'])
+@app.route('/rest/login', method=['POST'])
 @enable_cors
 def post_login():
     return {
@@ -72,11 +55,79 @@ def post_login():
         "user_data": {
             "first_name": "a",
             "last_name": "b",
-            "picture": "",
+            "picture": "https://source.unsplash.com/user/c_v_r/50x50",
             "access_token": "secret",
             "email": "a@b.com",
             "password": "hashed"
         }
     }
+
+@app.route('/rest/menu/test', method=['get'])
+@enable_cors
+def post_login():
+    return {
+   "test":{
+      "label":"Test Widget",
+      "dataset":{
+         "widget-1":{
+            "label":"Dataset Test 1",
+            "widgets":[
+               {
+                  "label":"Widget 1",
+                  "class":"test",
+                  "url":"/rest/menu/test/widget/1"
+               },
+               {
+                  "label":"Widget 2",
+                  "class":"test",
+                  "url":"/rest/menu/test/widget/2"
+               }
+            ]
+         }
+      }
+   },
+   "element_no_dataset":{
+     "label":"Widget no Dataset",
+     "class" :"simple_test",
+     "url":"/rest/menu/test/widget/3"
+   }
+}
+
+@app.route('/rest/menu/test/widget/1', method=['get'])
+@enable_cors
+def post_login():
+    return {
+        "label": "First widget with dataset",
+        "list_view_dataset": "Dataset Test 1",
+        "list_view_label": "Test",
+        "class": "test",
+        "body" : "Lorem ipsum widget test 1",
+        "size": 2522
+    }
+
+@app.route('/rest/menu/test/widget/2', method=['get'])
+@enable_cors
+def post_login():
+    return {
+        "label": "First widget with dataset",
+        "list_view_dataset": "Dataset Test 1",
+        "list_view_label": "Test 2",
+        "class": "test",
+        "body" : "Lorem ipsum widget test 2",
+        "size": 2522
+    }
+
+@app.route('/rest/menu/test/widget/3', method=['get'])
+@enable_cors
+def post_login():
+    return {
+        "label": "First widget with dataset",
+        "list_view_dataset": "Test No dataset",
+        "list_view_label": "Test 1 no dataset",
+        "class": "simple_test",
+        "test_custom_label_data" : "Test test test test",
+        "size": 2522
+    }
+
 
 run(app, host='localhost', port=8000, reloader=True)
