@@ -85,6 +85,7 @@ def test():
                {
                   "label":"Chart Widget",
                   "class":"chart",
+                  "type": "doughnut",
                   "url":"/rest/menu/test/widget/chart"
                }
             ]
