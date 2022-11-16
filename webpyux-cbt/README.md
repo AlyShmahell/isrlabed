@@ -32,4 +32,6 @@ git submodule update --remote
 - spinner
 ![spinner](results/spinner.png)
 - chart
+![login](results/login.png)
+- chart
 ![chart](results/chart-1.png)
