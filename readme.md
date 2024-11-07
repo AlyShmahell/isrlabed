@@ -1,0 +1,1 @@
+- check https://docs.ultralytics.com/guides/isolating-segmentation-objects/#recipe-walk-through
