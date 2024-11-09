@@ -1,8 +1,10 @@
+import os
 import rel
 import zmq
 import zmq.asyncio
 import json
 import asyncio
+import argparse
 import websocket
 
 class Pusher:
@@ -19,19 +21,28 @@ class Pusher:
             )
             print(sensor, message)
         self.loop.run_until_complete(create_tasks())
-    def __init__(self):
+    def __init__(self, args):
         context = zmq.asyncio.Context()
         self.socket = context.socket(zmq.PUSH)
-        self.socket.bind('tcp://localhost:5555')
+        self.socket.bind(f'tcp://{args.zmq_host}:{args.zmq_port}')
         self.loop = asyncio.get_event_loop()
         websocket.enableTrace(True)
         for sensor in [
             'accelerometer',
+            'magnetic_field',
+            'orientation',
             'gyroscope',
-            'linear_acceleration'
+            'light',
+            'proximity',
+            'gravity',
+            'game_rotation_vector',
+            'geomagnetic_rotation_vector',
+            'linear_acceleration',
+            'rotation_vector',
+            'orientation'
         ]:
             ws = websocket.WebSocketApp(
-                f"ws://192.168.1.171:8081/sensor/connect?type=android.sensor.{sensor}",
+                f"ws://{args.wss_host}:{args.wss_port}/sensor/connect?type=android.sensor.{sensor}",
                 on_open=lambda ws: None,
                 on_close=lambda ws, *args: print(*args),
                 on_error=lambda ws, err: print(err),
@@ -41,5 +52,11 @@ class Pusher:
         rel.signal(2, rel.abort)
         rel.dispatch()
 
-if __name__=='__main__':
-    Pusher()
+if __name__ in ['__main__', '__mp_main__']:
+    argparser = argparse.ArgumentParser()
+    argparser.add_argument("--wss-port", default=int(os.environ.get("wss-port", 8081)), type=int)
+    argparser.add_argument("--zmq-port", default=int(os.environ.get("zmq-port", 5555)), type=int)
+    argparser.add_argument("--wss-host", default=str(os.environ.get("wss-host", '192.168.1.171')), type=str)
+    argparser.add_argument("--zmq-host", default=str(os.environ.get("zmq-host", '0.0.0.0')), type=str)
+    args = argparser.parse_args()
+    Pusher(args)

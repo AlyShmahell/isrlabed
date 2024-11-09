@@ -26,12 +26,24 @@ class ZMQ(metaclass=Singleton):
 @ui.page("/")
 def index(client: Client):
     class Main:
+        @property
+        def connected(self):
+            return 'wifi' if bool(self.events) else 'wifi_off'
         def __init__(self):
             self.zmqcon = ZMQ()
-            with ui.header(elevated=True):
+            with ui.header(elevated=True).classes("justify-between bg-black"):
                 ui.label("NiceGUI.4.Bots")
+                def change_status_icon(name):
+                    if name == 'wifi':
+                        statuc_icon.style("color: green")
+                    else:
+                        statuc_icon.style("color: red")
+                    return name
+                statuc_icon = ui.icon('wifi_off', size='xl').bind_name_from(self, 'connected', change_status_icon)
+
             with ui.grid(columns=2, rows=2).classes("h-full w-full"):
                 with ui.card().classes("h-full w-full"):
+
                     self.line_plot = ui.line_plot(n=3, limit=100, figsize=(10, 4))
                 with ui.card().classes("h-full w-full"):
                     pass
@@ -39,11 +51,13 @@ def index(client: Client):
                     pass
                 with ui.card().classes("h-full w-full"):
                     pass
+            with ui.footer(elevated=True).classes("w-full justify-center bg-black"):
+                ui.label("Copyrights 2024 © Aly Shmahell")
             client.on_connect(background_tasks.create(self()))
         async def __call__(self):
             while not app.is_stopped:
-                events = await self.zmqcon.poller.poll()
-                if self.zmqcon.socket in dict(events):
+                self.events = await self.zmqcon.poller.poll()
+                if self.zmqcon.socket in dict(self.events):
                     try:
                         data = json.loads(await self.zmqcon.socket.recv())
                         assert isinstance(data, dict)
