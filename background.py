@@ -27,20 +27,13 @@ class Pusher:
         self.socket.bind(f'tcp://{args.zmq_host}:{args.zmq_port}')
         self.loop = asyncio.get_event_loop()
         websocket.enableTrace(True)
-        for sensor in [
-            'accelerometer',
-            'magnetic_field',
-            'orientation',
-            'gyroscope',
-            'light',
-            'proximity',
-            'gravity',
-            'game_rotation_vector',
-            'geomagnetic_rotation_vector',
-            'linear_acceleration',
-            'rotation_vector',
-            'orientation'
-        ]:
+        try:
+            with open("names.json", "r") as f:
+                names = json.load(f)
+                assert isinstance(names, list)
+        except:
+            names = []
+        for sensor in names:
             ws = websocket.WebSocketApp(
                 f"ws://{args.wss_host}:{args.wss_port}/sensor/connect?type=android.sensor.{sensor}",
                 on_open=lambda ws: None,

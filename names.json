@@ -1,0 +1,14 @@
+[
+    "accelerometer",
+    "magnetic_field",
+    "orientation",
+    "gyroscope",
+    "light",
+    "proximity",
+    "gravity",
+    "game_rotation_vector",
+    "geomagnetic_rotation_vector",
+    "linear_acceleration",
+    "rotation_vector",
+    "orientation"
+]

@@ -7,6 +7,9 @@ import argparse
 from datetime import datetime
 from nicegui import app, ui, Client, background_tasks
 logger = logging.getLogger("nicegui")
+import plotly.graph_objects as go
+import numpy as np
+from scipy.spatial.transform import Rotation as R
 
 class Singleton(type):
     _instances = {}
@@ -23,9 +26,62 @@ class ZMQ(metaclass=Singleton):
         self.poller = zmq.asyncio.Poller()
         self.poller.register(self.socket, zmq.POLLIN)
 
+
+
+
 @ui.page("/")
 def index(client: Client):
     class Main:
+        @ui.refreshable
+        def orientation(self, degree):
+            # Define a rotation for demonstration (e.g., 45 degrees around the Z-axis)
+            rotation = R.from_euler('z', degree, degrees=True)
+
+            # Standard unit vectors
+            i_hat = np.array([1, 0, 0])  # X-axis
+            j_hat = np.array([0, 1, 0])  # Y-axis
+            k_hat = np.array([0, 0, 1])  # Z-axis
+
+            # Rotate the unit vectors to get the new orientation
+            u_x = rotation.apply(i_hat)  # New X-axis after rotation
+            u_y = rotation.apply(j_hat)  # New Y-axis after rotation
+            u_z = rotation.apply(k_hat)  # New Z-axis after rotation
+
+            # Define vectors in dictionary for easier plotting
+            vectors = {
+                "X-axis": {"start": [0, 0, 0], "end": u_x},
+                "Y-axis": {"start": [0, 0, 0], "end": u_y},
+                "Z-axis": {"start": [0, 0, 0], "end": u_z},
+            }
+
+            # Create the 3D plot
+            fig = go.Figure()
+
+            # Add each oriented unit vector as an arrow (quiver plot)
+            for name, vector in vectors.items():
+                fig.add_trace(
+                    go.Scatter3d(
+                        x=[vector["start"][0], vector["end"][0]],
+                        y=[vector["start"][1], vector["end"][1]],
+                        z=[vector["start"][2], vector["end"][2]],
+                        marker=dict(size=2),
+                        line=dict(width=5),
+                        name=name
+                    )
+                )
+            fig.update_traces()
+            # Customize layout for visualization
+            fig.update_layout(
+                scene=dict(
+                    xaxis=dict(nticks=4, range=[-1, 1.5], title="X-axis"),
+                    yaxis=dict(nticks=4, range=[-1, 1.5], title="Y-axis"),
+                    zaxis=dict(nticks=4, range=[-1, 1.5], title="Z-axis"),
+                    aspectratio=dict(x=1, y=1, z=1),
+                ),
+                title="Orientation"
+            )
+
+            ui.plotly(fig).classes("h-full w-full")
         @property
         def connected(self):
             return 'wifi' if bool(self.events) else 'wifi_off'
@@ -40,13 +96,21 @@ def index(client: Client):
                         statuc_icon.style("color: red")
                     return name
                 statuc_icon = ui.icon('wifi_off', size='xl').bind_name_from(self, 'connected', change_status_icon)
-
-            with ui.grid(columns=2, rows=2).classes("h-full w-full"):
+            try:
+                with open("names.json", "r") as f:
+                    names = json.load(f)
+                    assert isinstance(names, list)
+            except:
+                names = []
+            with ui.grid(columns=2, rows=2).classes("h-full w-full") as self.context:
                 with ui.card().classes("h-full w-full"):
-
+                    self.line_select = ui.select(
+                        options=names,
+                        label='sensors'
+                    )
                     self.line_plot = ui.line_plot(n=3, limit=100, figsize=(10, 4))
                 with ui.card().classes("h-full w-full"):
-                    pass
+                    self.orientation(0)
                 with ui.card().classes("h-full w-full"):
                     pass
                 with ui.card().classes("h-full w-full"):
@@ -65,13 +129,19 @@ def index(client: Client):
                         logger.exception(e)
                         continue
                     match data.get("name"):
-                        case "linear_acceleration":
+                        case self.line_select.value:
                             values = data.get("values", [])
-                            if values:
+                            if len(values) == 3:
                                 self.line_plot.push(
                                     [datetime.now()], 
                                     [[value] for value in values]
                                 )
+                            else:
+                                with self.context:
+                                    ui.notify(f"cannot plot {len(values)} lines", type='negative')
+                        case 'orientation':
+                            values = data.get("values", [])
+                            self.orientation.refresh(np.linalg.norm(values))
     Main()
 
 if __name__ in ['__main__', '__mp_main__']:
