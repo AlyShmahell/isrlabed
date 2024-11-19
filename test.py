@@ -1,21 +1,21 @@
-import time
-import zmq
+from nicegui import ui 
 import random
 
-context = zmq.Context()
-consumer_receiver = context.socket(zmq.SUB)    
 
-consumer_receiver.setsockopt(zmq.CONFLATE, 1)
+def refresh_maybe(refreshable: ui.refreshable, *args, **kwargs):
+    refresh = True
+    for target in refreshable.targets:
+        if target.instance == refreshable.instance:
+            refresh = False
+    if refresh:
+        refreshable(*args, **kwargs)
+    else:
+        refreshable.refresh(*args, **kwargs)
 
-consumer_receiver.connect("tcp://127.0.0.1:5555") 
-consumer_receiver.subscribe(b'')
+@ui.refreshable
+def init():
+    ui.label(random.random())
 
+ui.button(on_click=lambda: refresh_maybe(init))
 
-while 1:
-    d=random.randint(1,10)
-
-    work = consumer_receiver.recv()
-
-    print(work,"  :",d)
-
-    time.sleep(d)
+ui.run()
