@@ -23,7 +23,7 @@ class Args(metaclass=Singleton):
         print(f"{__name__} args: {args}")
         return args
     
-async def refresh_maybe(refreshable: ui.refreshable, container:ui.element, *args, **kwargs):
+def refresh_maybe(refreshable: ui.refreshable, container:ui.element, *args, **kwargs):
     new = True
     for target in refreshable.targets:
         if target.instance == refreshable.instance:
@@ -32,12 +32,12 @@ async def refresh_maybe(refreshable: ui.refreshable, container:ui.element, *args
         container.clear()
         if new:
             if is_coroutine_function(refreshable):
-                await refreshable(*args, **kwargs)
+                background_tasks.create(refreshable(*args, **kwargs))
             else:
                 refreshable(*args, **kwargs)
         else:
             if is_coroutine_function(refreshable):
-                await refreshable.refresh(*args, **kwargs)
+                background_tasks.create(refreshable.refresh(*args, **kwargs))
             else:
                 refreshable.refresh(*args, **kwargs)
 
@@ -47,40 +47,30 @@ def index(client: Client):
         @property
         def connected(self):
             return 'wifi' if bool(self.events) else 'wifi_off'
-        async def update(self, topic, data):
+        def update(self, topic):
+            if topic != self.selected:
+                return
             if topic == "gps":
-                center = (int(data.get("latitude", 0)), int(data.get("longitude", 0)))
-                self.elem['map'].set_center(center)
-                self.elem['marker'].move(*center)
+                self.elem['map'].set_center(self.options[topic]['len']['center'])
+                self.elem['marker'].move(*self.options[topic]['len']['center'])
             else:
-                values = data.get("values", [])
-                if topic in self.minmax:
-                    tmpmin = self.minmax[topic]['min']
-                    tmpmax = self.minmax[topic]['max']
-                else:
-                    tmpmin = 0
-                    tmpmax = 100
-                self.minmax[topic] = {
-                    'min': min(min(values), tmpmin),
-                    'max': max(max(values), tmpmax)
-                }
-                if len(values) == 3:
+                if self.options[topic]['len'] == 3:
                     self.elem.push(
                             [datetime.datetime.now()], 
-                            [[value] for value in values]
+                            [[value] for value in self.options[topic]['values']]
                         )
                 else:
                     self.elem.options['series'] = [{
                         "name": topic,
-                        "data": values
+                        "data": self.options[topic]['values']
                     }]
                     self.elem.options['yAxis'] = {
-                        'min': self.minmax[topic]['min'],
-                        'max': self.minmax[topic]['max']
+                        'min': self.options[topic]['min'],
+                        'max': self.options[topic]['max']
                     }
                     self.elem.update()
         @ui.refreshable
-        def draw(self, topic, data):
+        def draw(self, topic):
             with self.body:
                 ui.notify(topic)
                 with ui.card():
@@ -91,8 +81,7 @@ def index(client: Client):
                         }
                         self.elem['marker'] = self.elem['map'].marker(latlng=self.elem['map'].center)
                     else:
-                        values = data.get("values", [])
-                        if len(values) == 3:
+                        if self.options[topic]['len'] == 3:
                             self.elem = ui.line_plot(n=3, limit=100, figsize=(10, 4))
                         else:
                             self.elem = ui.highchart({
@@ -102,27 +91,40 @@ def index(client: Client):
                                             {'name': topic, 'data': []},
                                         ],
                                     }, extras=['solid-gauge'])
-                            if len(values) == 1:
+                            if self.options[topic]['len'] == 1:
                                 self.elem.options['chart']['type'] = 'solidgaugue'
-        async def draw_or_update(self, topic, data):
+                self.selected = topic
+        def set_options(self, topic, data):
+            if topic == "gps":
+                self.options[topic]['center'] = (int(data.get("latitude", 0)), int(data.get("longitude", 0)))
+            else:
+                values = data.get("values", [])
+                if topic not in self.options:
+                    self.options[topic] = {
+                        'values': values,
+                        'len': len(values),
+                        'min': min(values),
+                        'max': max(values)
+                    }
+                else:
+                    self.options[topic]['min'] = min(min(values), self.options[topic]['min'])
+                    self.options[topic]['max'] = max(max(values), self.options[topic]['max'])
+        def draw_or_update(self, topic, data):
+            self.set_options(topic, data)
             if topic not in self.selection.options:
                 self.selection.options += [topic]
                 self.selection.update()
-            if topic != self.selection.value:
-                return
-            if topic == self.selected:
-                await self.update(topic, data)
-            else:
-                await refresh_maybe(self.draw, self.body, topic, data)
-                await asyncio.sleep(.1)
-                self.selected = topic
-                await asyncio.sleep(.1)
-                await self.update(topic, data)
+            if topic == self.selection.value:
+                self.update(topic)
+        def switch(self, e):
+                print(e)
+                refresh_maybe(self.draw, self.body, e.value)
+                ui.notify(f"updated: {self.selected}")
         def __init__(self):
             args = Args()
             self.selected = ""
             self.elem = None
-            self.minmax = {}
+            self.options = {}
             context = zmq.asyncio.Context()
             self.socket = context.socket(zmq.SUB)
             self.socket.setsockopt(zmq.CONFLATE, 1)
@@ -141,7 +143,8 @@ def index(client: Client):
                 statuc_icon = ui.icon('wifi_off', size='xl').bind_name_from(self, 'connected', change_status_icon)
             self.selection = ui.select(
                     options=[],
-                    label='sensors'
+                    label='sensors',
+                    on_change=lambda e: self.switch(e)
                 ).classes("w-full")
             self.body = ui.grid(rows=2).classes("h-full w-full")
                 
@@ -157,7 +160,7 @@ def index(client: Client):
                         topic, data = data.decode().split(" ")
                         data = json.loads(data)
                         assert isinstance(data, dict)
-                        await self.draw_or_update(topic, data)
+                        self.draw_or_update(topic, data)
                     except Exception as e:
                         logger.exception(e)
                         continue
