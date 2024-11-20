@@ -7,7 +7,6 @@ import logging
 import argparse
 import datetime
 from   nicegui import app, ui, Client, background_tasks
-from nicegui.helpers import is_coroutine_function
 logger = logging.getLogger("nicegui")
 logger.setLevel(logging.DEBUG)
 from utils import Singleton
@@ -27,7 +26,7 @@ class CompoundMap(ui.element):
     def __init__(self, tag = None, *, _client = None, center):
         super().__init__(tag, _client=_client)
         with self:
-            self.map = ui.leaflet(center).classes("w-full h-full")
+            self.map = ui.leaflet(center).classes("w-full h-[60vh]")
             self.marker = self.map.marker(latlng=center)
     def move(self, center):
         self.map.set_center(center)
@@ -39,70 +38,9 @@ def index(client: Client):
     class Main:
         @property
         def connected(self):
-            return 'wifi' if bool(self.events) else 'wifi_off'
-        def switch(self, topic):
-            self.body.clear()
-            with self.body:
-                with ui.card().classes("w-full h-full justify-center items-center"):
-                    ui.label(topic)
-                    if topic == "gps":
-                        self.elem = CompoundMap(center=(0,0)).classes("w-full h-full")
-                    else:
-                        if self.options[topic]['len'] == 3:
-                            self.elem = ui.line_plot(n=3, limit=100, figsize=(10, 4))
-                        else:
-                            self.elem = ui.highchart({
-                                        'title': False,
-                                        'chart': {'type': 'bar'},
-                                        'series': [
-                                            {'name': topic, 'data': []},
-                                        ],
-                                    }, extras=['solid-gauge'])
-                            if self.options[topic]['len'] == 1:
-                                self.elem.options['chart']['type'] = 'solidgauge'
-                            ui.notify(self.elem.options)
-        async def process(self, topic, data):
-            if topic not in self.selection.options:
-                self.selection.options += [topic]
-                self.selection.update()
-            if topic == "gps":
-                self.options[topic] = {
-                    'center': (int(data.get("latitude", 0)), int(data.get("longitude", 0)))
-                }
-            else:
-                values = data.get("values", [])
-                self.options[topic] = {
-                    'values': values,
-                    'len': len(values),
-                    'min': min(min(values), self.options.get(topic, {}).get('min', min(values))),
-                    'max': max(max(values), self.options.get(topic, {}).get('max', max(values)))
-                }
-            if topic != self.selection.value:
-                return
-            with self.body:
-                if topic == "gps":
-                    self.elem.move(self.options[topic]['center'])
-                else:
-                    if self.options[topic]['len'] == 3:
-                        print(topic, self.options[topic]['values'])
-                        self.elem.push(
-                                [datetime.datetime.now()], 
-                                [[value] for value in self.options[topic]['values']]
-                            )
-                    else:
-                        self.elem.options['series'] = [{
-                            "name": topic,
-                            "data": self.options[topic]['values']
-                        }]
-                        self.elem.options['yAxis'] = {
-                            'min': self.options[topic]['min'],
-                            'max': self.options[topic]['max']
-                        }                    
-                        self.elem.update()
+            return 'wifi' if bool(self.events) else 'wifi_off'         
         def __init__(self):
             args = Args()
-            self.elem = None
-            self.options = {}
             context = zmq.asyncio.Context()
             self.socket = context.socket(zmq.SUB)
             self.socket.setsockopt(zmq.CONFLATE, 1)
@@ -119,13 +57,11 @@ def index(client: Client):
                         statuc_icon.style("color: red")
                     return name
                 statuc_icon = ui.icon('wifi_off', size='xl').bind_name_from(self, 'connected', change_status_icon)
-            with ui.element("div").classes("h-[80vh] w-full"):
-                self.selection = ui.select(
-                        options=[],
-                        label='sensors',
-                        on_change=lambda e: self.switch(e.value)
-                    ).classes("w-full")
-                self.body = ui.element("div").classes("h-full w-full")
+            with ui.element("div").classes("h-full w-full"):
+                self.tabs       = ui.tabs()
+                self.topic2tab  = {}
+                self.elems      = {}
+                self.tab_panels =  ui.tab_panels(self.tabs).classes('w-full')
             with ui.footer(elevated=True).classes("w-full justify-center bg-black"):
                 ui.label("Copyrights 2024 © Aly Shmahell")
             client.on_connect(background_tasks.create(self()))
@@ -137,7 +73,56 @@ def index(client: Client):
                         data = await self.socket.recv()
                         topic, data = data.decode().split(" ")
                         data = json.loads(data)
-                        await self.process(topic, data)
+                        values = data.get("values", [])
+                        if topic not in self.topic2tab:
+                            with self.tabs:
+                                self.topic2tab[topic] = ui.tab(topic)
+                            with self.tab_panels:
+                                with ui.tab_panel(self.topic2tab[topic]):
+                                    with ui.card().classes("w-full h-full justify-center items-center"):
+                                        ui.label(topic)
+                                        if topic == "gps":
+                                            self.elems[topic] = CompoundMap(center=(0,0)).classes("w-full h-full")
+                                        else:
+                                            if len(values) == 3:
+                                                self.elems[topic] = ui.line_plot(n=3, limit=100, figsize=(10, 4))
+                                            else:
+                                                self.elems[topic] = ui.highchart({
+                                                            'title': False,
+                                                            'chart': {'type': 'bar'},
+                                                            'series': [
+                                                                {'name': topic, 'data': []},
+                                                            ],
+                                                        }, extras=['solid-gauge'])
+                                                if len(values) == 1:
+                                                    self.elems[topic].options['chart']['type'] = 'solidgauge'
+                                                ui.notify(self.elems[topic].options) 
+                        if topic != self.tabs.value:
+                            continue
+                        if topic == "gps":
+                            self.elems[topic].move((int(data.get("latitude", 0)), int(data.get("longitude", 0))))
+                        else:
+                            if len(values) == 3:
+                                self.elems[topic].push(
+                                        [datetime.datetime.now()], 
+                                        [[value] for value in values]
+                                    )
+                            else:
+                                if not any(x['name']==topic for x in self.elems[topic].options['series']):
+                                    self.elems[topic].options['series'] += [{
+                                        "name": topic,
+                                        "data": values
+                                    }]
+                                else:
+                                    for idx, x in enumerate(self.elems[topic].options['series']):
+                                        if x['name']==topic:
+                                            self.elems[topic].options['series'][idx]['data'] = values
+                                self.elems[topic].options['yAxis'] = {
+                                    'min': min(min(values), self.elems[topic].options.get('yAxis', {}).get('min', min(values))),
+                                    'max': max(max(values), self.elems[topic].options.get('yAxis', {}).get('max', max(values)))
+                                }                    
+                                self.elems[topic].update()
+                                await asyncio.sleep(.1)
                     except Exception as e:
                         logger.exception(e)
                         continue
