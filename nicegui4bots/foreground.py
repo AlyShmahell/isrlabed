@@ -23,23 +23,16 @@ class Args(metaclass=Singleton):
         print(f"{__name__} args: {args}")
         return args
     
-def refresh_maybe(refreshable: ui.refreshable, container:ui.element, *args, **kwargs):
-    new = True
-    for target in refreshable.targets:
-        if target.instance == refreshable.instance:
-            new = False
-    with container:
-        container.clear()
-        if new:
-            if is_coroutine_function(refreshable):
-                background_tasks.create(refreshable(*args, **kwargs))
-            else:
-                refreshable(*args, **kwargs)
-        else:
-            if is_coroutine_function(refreshable):
-                background_tasks.create(refreshable.refresh(*args, **kwargs))
-            else:
-                refreshable.refresh(*args, **kwargs)
+class CompoundMap(ui.element):
+    def __init__(self, tag = None, *, _client = None, center):
+        super().__init__(tag, _client=_client)
+        with self:
+            self.map = ui.leaflet(center).classes("w-full h-full")
+            self.marker = self.map.marker(latlng=center)
+    def move(self, center):
+        self.map.set_center(center)
+        self.marker.move(*center)
+
 
 @ui.page("/")
 def index(client: Client):
@@ -47,39 +40,13 @@ def index(client: Client):
         @property
         def connected(self):
             return 'wifi' if bool(self.events) else 'wifi_off'
-        def update(self, topic):
-            if topic != self.selected:
-                return
-            if topic == "gps":
-                self.elem['map'].set_center(self.options[topic]['len']['center'])
-                self.elem['marker'].move(*self.options[topic]['len']['center'])
-            else:
-                if self.options[topic]['len'] == 3:
-                    self.elem.push(
-                            [datetime.datetime.now()], 
-                            [[value] for value in self.options[topic]['values']]
-                        )
-                else:
-                    self.elem.options['series'] = [{
-                        "name": topic,
-                        "data": self.options[topic]['values']
-                    }]
-                    self.elem.options['yAxis'] = {
-                        'min': self.options[topic]['min'],
-                        'max': self.options[topic]['max']
-                    }
-                    self.elem.update()
-        @ui.refreshable
-        def draw(self, topic):
+        def switch(self, topic):
+            self.body.clear()
             with self.body:
-                ui.notify(topic)
-                with ui.card():
+                with ui.card().classes("w-full h-full justify-center items-center"):
                     ui.label(topic)
                     if topic == "gps":
-                        self.elem = {
-                            'map': ui.leaflet(center=(0,0)),
-                        }
-                        self.elem['marker'] = self.elem['map'].marker(latlng=self.elem['map'].center)
+                        self.elem = CompoundMap(center=(0,0)).classes("w-full h-full")
                     else:
                         if self.options[topic]['len'] == 3:
                             self.elem = ui.line_plot(n=3, limit=100, figsize=(10, 4))
@@ -92,37 +59,48 @@ def index(client: Client):
                                         ],
                                     }, extras=['solid-gauge'])
                             if self.options[topic]['len'] == 1:
-                                self.elem.options['chart']['type'] = 'solidgaugue'
-                self.selected = topic
-        def set_options(self, topic, data):
-            if topic == "gps":
-                self.options[topic]['center'] = (int(data.get("latitude", 0)), int(data.get("longitude", 0)))
-            else:
-                values = data.get("values", [])
-                if topic not in self.options:
-                    self.options[topic] = {
-                        'values': values,
-                        'len': len(values),
-                        'min': min(values),
-                        'max': max(values)
-                    }
-                else:
-                    self.options[topic]['min'] = min(min(values), self.options[topic]['min'])
-                    self.options[topic]['max'] = max(max(values), self.options[topic]['max'])
-        def draw_or_update(self, topic, data):
-            self.set_options(topic, data)
+                                self.elem.options['chart']['type'] = 'solidgauge'
+                            ui.notify(self.elem.options)
+        async def process(self, topic, data):
             if topic not in self.selection.options:
                 self.selection.options += [topic]
                 self.selection.update()
-            if topic == self.selection.value:
-                self.update(topic)
-        def switch(self, e):
-                print(e)
-                refresh_maybe(self.draw, self.body, e.value)
-                ui.notify(f"updated: {self.selected}")
+            if topic == "gps":
+                self.options[topic] = {
+                    'center': (int(data.get("latitude", 0)), int(data.get("longitude", 0)))
+                }
+            else:
+                values = data.get("values", [])
+                self.options[topic] = {
+                    'values': values,
+                    'len': len(values),
+                    'min': min(min(values), self.options.get(topic, {}).get('min', min(values))),
+                    'max': max(max(values), self.options.get(topic, {}).get('max', max(values)))
+                }
+            if topic != self.selection.value:
+                return
+            with self.body:
+                if topic == "gps":
+                    self.elem.move(self.options[topic]['center'])
+                else:
+                    if self.options[topic]['len'] == 3:
+                        print(topic, self.options[topic]['values'])
+                        self.elem.push(
+                                [datetime.datetime.now()], 
+                                [[value] for value in self.options[topic]['values']]
+                            )
+                    else:
+                        self.elem.options['series'] = [{
+                            "name": topic,
+                            "data": self.options[topic]['values']
+                        }]
+                        self.elem.options['yAxis'] = {
+                            'min': self.options[topic]['min'],
+                            'max': self.options[topic]['max']
+                        }                    
+                        self.elem.update()
         def __init__(self):
             args = Args()
-            self.selected = ""
             self.elem = None
             self.options = {}
             context = zmq.asyncio.Context()
@@ -141,13 +119,13 @@ def index(client: Client):
                         statuc_icon.style("color: red")
                     return name
                 statuc_icon = ui.icon('wifi_off', size='xl').bind_name_from(self, 'connected', change_status_icon)
-            self.selection = ui.select(
-                    options=[],
-                    label='sensors',
-                    on_change=lambda e: self.switch(e)
-                ).classes("w-full")
-            self.body = ui.grid(rows=2).classes("h-full w-full")
-                
+            with ui.element("div").classes("h-[80vh] w-full"):
+                self.selection = ui.select(
+                        options=[],
+                        label='sensors',
+                        on_change=lambda e: self.switch(e.value)
+                    ).classes("w-full")
+                self.body = ui.element("div").classes("h-full w-full")
             with ui.footer(elevated=True).classes("w-full justify-center bg-black"):
                 ui.label("Copyrights 2024 © Aly Shmahell")
             client.on_connect(background_tasks.create(self()))
@@ -159,8 +137,7 @@ def index(client: Client):
                         data = await self.socket.recv()
                         topic, data = data.decode().split(" ")
                         data = json.loads(data)
-                        assert isinstance(data, dict)
-                        self.draw_or_update(topic, data)
+                        await self.process(topic, data)
                     except Exception as e:
                         logger.exception(e)
                         continue
