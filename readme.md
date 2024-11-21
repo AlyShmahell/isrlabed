@@ -16,7 +16,11 @@ pip install -r requirements.txt
 
 ## Running
 ```
-python nicegui4bots/background.py --wss-host <your_sensor_source_ip> --http-host <your_sensor_source_ip> --wss-port <your_sensor_source_wss_port> --http-port <your_sensor_source_http_port>
+python nicegui4bots/background.py \
+     --wss-host <your_sensor_source_ip> \
+     --http-host <your_sensor_source_ip> \
+     --wss-port <your_sensor_source_wss_port> \
+     --http-port <your_sensor_source_http_port>
 python nicegui4bots/foreground.py
 ```
 
