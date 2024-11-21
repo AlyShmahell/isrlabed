@@ -53,7 +53,7 @@ if __name__ in ['__main__', '__mp_main__']:
     argparser = argparse.ArgumentParser()
     argparser.add_argument("--zmq-port", default=int(os.environ.get("zmq-port", 5555)), type=int)
     argparser.add_argument("--zmq-host", default=str(os.environ.get("zmq-host", '0.0.0.0')), type=str)
-    argparser.add_argument("--wss-port", default=int(os.environ.get("wss-port", 8081)), type=int)
+    argparser.add_argument("--wss-port", default=int(os.environ.get("wss-port", 8082)), type=int)
     argparser.add_argument("--wss-host", default=str(os.environ.get("wss-host", '192.168.1.171')), type=str)
     argparser.add_argument("--http-port", default=int(os.environ.get("http-port", 9090)), type=int)
     argparser.add_argument("--http-host", default=str(os.environ.get("http-host", '192.168.1.171')), type=str)

@@ -38,7 +38,7 @@ def index(client: Client):
     class Main:
         @property
         def connected(self):
-            return 'wifi' if bool(self.events) else 'wifi_off'         
+            return 'wifi' if (datetime.datetime.now() - self.now).total_seconds() <= 1 else 'wifi_off'         
         def __init__(self):
             args = Args()
             context = zmq.asyncio.Context()
@@ -50,17 +50,19 @@ def index(client: Client):
             self.poller.register(self.socket, zmq.POLLIN)
             with ui.header(elevated=True).classes("justify-between bg-black"):
                 ui.label("NiceGUI.4.Bots")
+                status_icon = ui.icon('wifi_off', size='xl')
                 def change_status_icon(name):
                     if name == 'wifi':
-                        statuc_icon.style("color: green")
+                        status_icon.style("color: green")
                     else:
-                        statuc_icon.style("color: red")
+                        status_icon.style("color: red")
                     return name
-                statuc_icon = ui.icon('wifi_off', size='xl').bind_name_from(self, 'connected', change_status_icon)
+                status_icon.bind_name_from(self, 'connected', change_status_icon)
             with ui.element("div").classes("h-full w-full"):
                 self.tabs       = ui.tabs()
                 self.topic2tab  = {}
                 self.elems      = {}
+                self.now        = datetime.datetime.now()
                 self.tab_panels =  ui.tab_panels(self.tabs).classes('w-full')
             with ui.footer(elevated=True).classes("w-full justify-center bg-black"):
                 ui.label("Copyrights 2024 © Aly Shmahell")
@@ -70,8 +72,11 @@ def index(client: Client):
                 self.events = await self.poller.poll()
                 if self.socket in dict(self.events):
                     try:
+                        self.now        = datetime.datetime.now()
                         data = await self.socket.recv()
                         topic, data = data.decode().split(" ")
+                        if 'light' in topic.lower():
+                            print(topic)
                         data = json.loads(data)
                         values = data.get("values", [])
                         if topic not in self.topic2tab:

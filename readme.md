@@ -1,0 +1,1 @@
+- download the android sensor server app from f-droid: https://f-droid.org/packages/github.umer0586.sensorserver
