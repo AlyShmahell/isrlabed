@@ -16,6 +16,8 @@ pip install -r requirements.txt
 
 ## Running
 ```
-python nicegui4bots/background.py --wss-host <your_local_ip> --http-host <your_local_ip>
+python nicegui4bots/background.py --wss-host <your_sensor_source_ip> --http-host <your_sensor_source_ip>
 python nicegui4bots/foreground.py
 ```
+
+The **your_sensor_source_ip** can be found inside the SensorServer app in the hamburger menu.
