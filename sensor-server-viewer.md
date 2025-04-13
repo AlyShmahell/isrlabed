@@ -1,4 +1,4 @@
-# NiceGUI4bots
+# sensor-server-viewer
 
 A 100% Python graphical user interface to visualize real-time data streams from a generic WebSocket & HTTP source.
 
@@ -16,12 +16,12 @@ pip install -r requirements.txt
 
 ## Running
 ```
-python nicegui4bots/background.py \
+python sensor-server-viewer/background.py \
      --wss-host <your_sensor_source_ip> \
      --http-host <your_sensor_source_ip> \
      --wss-port <your_sensor_source_wss_port> \
      --http-port <your_sensor_source_http_port>
-python nicegui4bots/foreground.py
+python sensor-server-viewer/foreground.py
 ```
 
 - **your_sensor_source_ip** can be found inside the SensorServer app in the hamburger menu.
