@@ -1,0 +1,3 @@
+[submodule "webpyux"]
+	path = webpyux
+	url = https://github.com/Spianopolese/webpyux

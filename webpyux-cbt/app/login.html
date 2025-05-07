@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
+    <meta name="description" content="WepPyUX"/>
+    <meta name="author" content="Spianopolese"/>
+    <title>WepPyUX</title>
+    <link rel="icon" type="image/x-icon" href="/webpyux/assets/favicon.ico"/>
+    <link rel="stylesheet" href="/webpyux/core/style/style.css"/>
+    <script defer src="https://pyscript.net/latest/pyscript.js"></script>
+    <script src="/webpyux/core/lib/utils/js/login.js"></script>
+</head>
+
+<body>
+<py-config type="toml">
+    packages = ["asyncio"]
+    paths = [
+    "config.ini"
+    ]
+</py-config>
+<body class="login-page">
+<div class="background">
+    <div class="shape"></div>
+    <div class="shape"></div>
+</div>
+<form>
+    <h3>Welcome to WebPy<sup>UX</sup></h3>
+
+    <label for="email">Email</label>
+    <input type="email" placeholder="Email" id="email" pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,4}$" required>
+    <label for="password">Password</label>
+    <input type="password" placeholder="Password" id="password" required>
+    <span id="error"> Email or password not valid</span>
+    <button type="submit" id="submit">Log In</button>
+</form>
+
+</body>
+<py-script src="/webpyux/core/login.py"></py-script>
+</body>
+</html>
